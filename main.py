@@ -30,8 +30,8 @@ class Satellites:
                 date.second]
         return date
 
-    def satellite_xyz(self, week: int, tow: int):
-        id, health, e, toa, i, omega_dot, sqrta, Omega, omega, m0, alfa, alfa1, gps_week = self.naval
+    def satellite_xyz(self, week: int, tow: int, nav: np.ndarray):
+        id, health, e, toa, i, omega_dot, sqrta, Omega, omega, m0, alfa, alfa1, gps_week = nav
 
         t = week * 7 * 86400 + tow
         toa_weeks = gps_week * 7 * 86400 + toa
@@ -67,7 +67,28 @@ class Satellites:
 
         return Xk, Yk, Zk
 
+    def satellites_coordinates(self):
+        while self.start_date <= self.end_date:
+            data = self.datetime_to_list(self.start_date)
+            week, tow = date2tow(data)
+            print('data:', data)
+
+            number_of_satellites = self.naval.shape[0]
+            for id in range(number_of_satellites):
+                nav = self.naval[id, :]
+                Xk, Yk, Zk = self.satellite_xyz(week, tow, nav)
+                print(Xk, Yk, Zk)
+                break
+
+            self.start_date += self.interval
+
+    def set_interval(self, interval: timedelta):
+        self.interval = interval
+
 
 if __name__ == "__main__":
     sat = Satellites(file_name='almanac.yuma.week0150.589824.txt')
+    sat.satellites_coordinates()
+    sat.set_interval(timedelta(minutes=30))
+    sat.satellites_coordinates()
 
