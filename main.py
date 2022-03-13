@@ -33,7 +33,8 @@ class Satellites:
                 date.second]
         return date
 
-    def satellite_xyz(self, week: int, tow: int, nav: np.ndarray):
+    @staticmethod
+    def satellite_xyz(week: int, tow: int, nav: np.ndarray):
         id, health, e, toa, i, omega_dot, sqrta, Omega, omega, m0, alfa, alfa1, gps_week = nav
 
         t = week * 7 * 86400 + tow
@@ -70,17 +71,48 @@ class Satellites:
 
         return Xk, Yk, Zk
 
+    def phi_lamda_to_xyz(self, phi: float, lamda: float, height: float):
+        phi = np.deg2rad(phi)
+        lamda = np.deg2rad(lamda)
+        N = self.a / (np.sqrt(1 - self.e2*(np.sin(phi)**2)))
+
+        x = (N + height)*np.cos(phi)*np.cos(lamda)
+        y = (N + height)*np.cos(phi)*np.sin(lamda)
+        z = (N*(1-self.e2) + height)*np.sin(phi)
+        return x, y, z
+
+    @staticmethod
+    def r_neu(phi: float, lamda: float, height: float):
+        phi = np.deg2rad(phi)
+        lamda = np.deg2rad(lamda)
+        matrix = np.array([[-np.sin(phi)*np.cos(lamda), -np.sin(lamda), np.cos(phi)*np.cos(lamda)],
+                           [-np.sin(phi)*np.sin(lamda), np.cos(lamda), np.cos(phi)*np.sin(lamda)],
+                           [np.cos(phi), 0, np.sin(phi)]])
+        return matrix
+
+    @staticmethod
+    def neu(r_neu: np.array, Xsr: list):
+        r_neu = np.transpose(r_neu)
+        return np.dot(r_neu, Xsr)
+
     def satellites_coordinates(self):
         while self.start_date <= self.end_date:
             data = self.datetime_to_list(self.start_date)
             week, tow = date2tow(data)
-            print('data:', data)
 
             number_of_satellites = self.naval.shape[0]
             for id in range(number_of_satellites):
                 nav = self.naval[id, :]
-                Xk, Yk, Zk = self.satellite_xyz(week, tow, nav)
-                print(Xk, Yk, Zk)
+                Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
+                Xr = self.phi_lamda_to_xyz(52, 21, 100)
+                Xsr = [i - j for i, j in zip(Xs, Xr)]
+                r_neu = self.r_neu(52, 21, 100)
+                neu = self.neu(r_neu, Xsr)  # satellite neu
+                n, e, u = neu
+                print(neu)
+                Az = np.arctan2(e, n)  # arctan(e/n)
+                el = np.arcsin(u/(np.sqrt(n**2+e**2+u**2)))  # elewacja
+                print(np.degrees(el), np.degrees(Az))
                 break
 
             self.start_date += self.interval
@@ -91,5 +123,6 @@ class Satellites:
 
 if __name__ == "__main__":
     sat = Satellites(file_name='almanac.yuma.week0150.589824.txt')
+    sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
 
