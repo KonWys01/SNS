@@ -12,6 +12,9 @@ class Satellites:
         self.start_date = datetime(year=2022, month=2, day=25)
         self.end_date = datetime(year=2022, month=2, day=26)
         self.interval = timedelta(minutes=15)
+        # WGS84
+        self.a = 6378137
+        self.e2 = 0.00669438002290
 
     def read_file(self):
         return read_yuma(self.file)
@@ -88,7 +91,5 @@ class Satellites:
 
 if __name__ == "__main__":
     sat = Satellites(file_name='almanac.yuma.week0150.589824.txt')
-    sat.satellites_coordinates()
-    sat.set_interval(timedelta(minutes=30))
     sat.satellites_coordinates()
 
