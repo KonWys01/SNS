@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 import numpy as np
 
 from python.read_yuma import read_yuma
@@ -40,12 +41,10 @@ class Satellites:
         t = week * 7 * 86400 + tow
         toa_weeks = gps_week * 7 * 86400 + toa
         tk = t - toa_weeks
-        # print(tk)
 
         """algorytm"""
         u = 3.986005 * (10 ** 14)
         omega_e = 7.2921151467 * (10 ** -5)
-        # tk = t - toa
         a = sqrta ** 2
         n = np.sqrt(u / (a ** 3))
         Mk = m0 + n * tk
@@ -96,26 +95,28 @@ class Satellites:
         return np.dot(r_neu, Xsr)
 
     def satellites_coordinates(self):
-        while self.start_date <= self.end_date:
-            data = self.datetime_to_list(self.start_date)
-            week, tow = date2tow(data)
-
-            number_of_satellites = self.naval.shape[0]
-            for id in range(number_of_satellites):
-                nav = self.naval[id, :]
+        number_of_satellites = self.naval.shape[0]
+        for id in range(number_of_satellites):
+            nav = self.naval[id, :]
+            era_date = self.start_date
+            while era_date <= self.end_date:
+                data = self.datetime_to_list(era_date)
+                week, tow = date2tow(data)
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
                 Xr = self.phi_lamda_to_xyz(52, 21, 100)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
+
                 r_neu = self.r_neu(52, 21, 100)
                 neu = self.neu(r_neu, Xsr)  # satellite neu
                 n, e, u = neu
-                print(neu)
-                Az = np.arctan2(e, n)  # arctan(e/n)
-                el = np.arcsin(u/(np.sqrt(n**2+e**2+u**2)))  # elewacja
-                print(np.degrees(el), np.degrees(Az))
-                break
 
-            self.start_date += self.interval
+                Az = np.arctan2(e, n)  # arctan(e/n)
+                el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
+                print(np.degrees(el), np.degrees(Az))
+
+                era_date += self.interval
+                break
+            # break
 
     def set_interval(self, interval: timedelta):
         self.interval = interval
@@ -123,6 +124,5 @@ class Satellites:
 
 if __name__ == "__main__":
     sat = Satellites(file_name='almanac.yuma.week0150.589824.txt')
-    sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
+    # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
-
