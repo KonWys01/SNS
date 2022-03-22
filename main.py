@@ -13,9 +13,12 @@ class Satellites:
         self.start_date = datetime(year=2022, month=2, day=25)
         self.end_date = datetime(year=2022, month=2, day=26)
         self.interval = timedelta(minutes=15)
+        self.mask = 10
+
         # WGS84
         self.a = 6378137
         self.e2 = 0.00669438002290
+
 
     def read_file(self):
         return read_yuma(self.file)
@@ -111,9 +114,18 @@ class Satellites:
                 n, e, u = neu
 
                 Az = np.arctan2(e, n)  # arctan(e/n)
+                Az = np.degrees(Az)
                 el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
-                print(np.degrees(el), np.degrees(Az))
+                el = np.degrees(el)
 
+                r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
+
+                if el > self.mask:
+                    A1 = np.array([(-(Xs[0]-Xr[0]) / r),
+                                   (-(Xs[1] - Xr[1]) / r),
+                                   (-(Xs[2] - Xr[2]) / r),
+                                   1])
+                    print(A1)
                 era_date += self.interval
                 break
             # break
