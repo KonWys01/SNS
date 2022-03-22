@@ -98,6 +98,7 @@ class Satellites:
         return np.dot(r_neu, Xsr)
 
     def satellites_coordinates(self):
+        A = np.zeros((0, 4))
         number_of_satellites = self.naval.shape[0]
         for id in range(number_of_satellites):
             nav = self.naval[id, :]
@@ -125,10 +126,19 @@ class Satellites:
                                    (-(Xs[1] - Xr[1]) / r),
                                    (-(Xs[2] - Xr[2]) / r),
                                    1])
-                    print(A1)
+                    A = np.vstack([A, A1])
                 era_date += self.interval
                 break
             # break
+
+        Q = np.linalg.inv(np.dot(A.transpose(), A))
+        print(Q)
+        qx, qy, qz, qt = Q.diagonal()
+
+        PDOP = np.sqrt(qx + qy + qz)
+        TDOP = np.sqrt(qt)
+        GDOP = np.sqrt(PDOP**2 + TDOP**2)
+        print(GDOP, PDOP, TDOP)
 
     def set_interval(self, interval: timedelta):
         self.interval = interval
