@@ -135,3 +135,9 @@ main_no_class.py
 SNS_almanach_position.pdf
 SNS_planning_zadanie.pdf
 testing/
+SNS_02_el_az.pdf
+SNS_03_DOP.pdf
+SNS_DOP.pdf
+wyniki_el_az.txt
+wyniki_DOP.txt
+testing.py
