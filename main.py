@@ -14,11 +14,11 @@ class Satellites:
         self.end_date = datetime(year=2022, month=2, day=26)
         self.interval = timedelta(minutes=15)
         self.mask = 10
+        self.r_neu = self.r_neu(52, 21, 100)
 
         # WGS84
         self.a = 6378137
         self.e2 = 0.00669438002290
-
 
     def read_file(self):
         return read_yuma(self.file)
@@ -100,18 +100,19 @@ class Satellites:
     def satellites_coordinates(self):
         A = np.zeros((0, 4))
         number_of_satellites = self.naval.shape[0]
-        for id in range(number_of_satellites):
-            nav = self.naval[id, :]
-            era_date = self.start_date
-            while era_date <= self.end_date:
-                data = self.datetime_to_list(era_date)
-                week, tow = date2tow(data)
+        era_date = self.start_date
+        while era_date <= self.end_date:
+            data = self.datetime_to_list(era_date)
+            week, tow = date2tow(data)
+
+            for id in range(number_of_satellites):
+                nav = self.naval[id, :]
+
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
                 Xr = self.phi_lamda_to_xyz(52, 21, 100)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
 
-                r_neu = self.r_neu(52, 21, 100)
-                neu = self.neu(r_neu, Xsr)  # satellite neu
+                neu = self.neu(self.r_neu, Xsr)  # satellite neu
                 n, e, u = neu
 
                 Az = np.arctan2(e, n)  # arctan(e/n)
@@ -120,7 +121,6 @@ class Satellites:
                 el = np.degrees(el)
 
                 r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
-
                 if el > self.mask:
                     A1 = np.array([(-(Xs[0]-Xr[0]) / r),
                                    (-(Xs[1] - Xr[1]) / r),
@@ -128,17 +128,27 @@ class Satellites:
                                    1])
                     A = np.vstack([A, A1])
                 era_date += self.interval
-                break
-            # break
-
+                # break
+            break
+        print('a', A)
         Q = np.linalg.inv(np.dot(A.transpose(), A))
-        print(Q)
+        print('q', Q)
         qx, qy, qz, qt = Q.diagonal()
+        Qxyz = Q[:3, :3]
+        print('Qxyz', Qxyz)
 
         PDOP = np.sqrt(qx + qy + qz)
         TDOP = np.sqrt(qt)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
         print(GDOP, PDOP, TDOP)
+
+        Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
+        print('Qneu', Qneu)
+        qn, qe, qu = Qneu.diagonal()
+        HDOP = np.sqrt(qn + qe)
+        VDOP = np.sqrt(qu)
+        PDOPneu = np.sqrt(HDOP**2 + VDOP**2)
+        print('hdop', HDOP, 'vdop', VDOP, 'pdopneu', PDOPneu)
 
     def set_interval(self, interval: timedelta):
         self.interval = interval
