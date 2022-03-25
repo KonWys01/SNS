@@ -7,7 +7,7 @@ from python.date2tow import date2tow
 
 
 class Satellites:
-    def __init__(self, file_name: str):
+    def __init__(self, file_name: str, start_date: datetime, end_date: datetime, mask: float):
         self.file = file_name
         self.naval = self.read_file()
         self.start_date = datetime(year=2022, month=2, day=25)
@@ -130,20 +130,20 @@ class Satellites:
                 era_date += self.interval
                 # break
             break
-        print('a', A)
+        # print('a', A)
         Q = np.linalg.inv(np.dot(A.transpose(), A))
-        print('q', Q)
+        # print('q', Q)
         qx, qy, qz, qt = Q.diagonal()
         Qxyz = Q[:3, :3]
-        print('Qxyz', Qxyz)
+        # print('Qxyz', Qxyz)
 
         PDOP = np.sqrt(qx + qy + qz)
         TDOP = np.sqrt(qt)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
-        print(GDOP, PDOP, TDOP)
+        # print(GDOP, PDOP, TDOP)
 
         Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
-        print('Qneu', Qneu)
+        # print('Qneu', Qneu)
         qn, qe, qu = Qneu.diagonal()
         HDOP = np.sqrt(qn + qe)
         VDOP = np.sqrt(qu)
