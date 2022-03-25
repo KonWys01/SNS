@@ -7,14 +7,15 @@ from python.date2tow import date2tow
 
 
 class Satellites:
-    def __init__(self, file_name: str, start_date: datetime, end_date: datetime, mask: float):
+    def __init__(self, file_name: str, start_date: datetime, mask: int, observer_pos: list):
         self.file = file_name
         self.naval = self.read_file()
-        self.start_date = datetime(year=2022, month=2, day=25)
-        self.end_date = datetime(year=2022, month=2, day=26)
+        self.start_date = start_date
+        self.end_date = self.start_date + timedelta(days=1)
         self.interval = timedelta(minutes=15)
-        self.mask = 10
-        self.r_neu = self.r_neu(52, 21, 100)
+        self.mask = mask
+        print(self.mask)
+        self.r_neu = self.r_neu(observer_pos[0], observer_pos[1], observer_pos[2])
 
         # WGS84
         self.a = 6378137
@@ -73,14 +74,17 @@ class Satellites:
 
         return Xk, Yk, Zk
 
-    def phi_lamda_to_xyz(self, phi: float, lamda: float, height: float):
+    @staticmethod
+    def phi_lamda_to_xyz(phi: float, lamda: float, height: float):
+        a = 6378137
+        e2 = 0.00669438002290
         phi = np.deg2rad(phi)
         lamda = np.deg2rad(lamda)
-        N = self.a / (np.sqrt(1 - self.e2*(np.sin(phi)**2)))
+        N = a / (np.sqrt(1 - e2*(np.sin(phi)**2)))
 
         x = (N + height)*np.cos(phi)*np.cos(lamda)
         y = (N + height)*np.cos(phi)*np.sin(lamda)
-        z = (N*(1-self.e2) + height)*np.sin(phi)
+        z = (N*(1-e2) + height)*np.sin(phi)
         return x, y, z
 
     @staticmethod
@@ -130,6 +134,7 @@ class Satellites:
                 era_date += self.interval
                 # break
             break
+        print(A)
         # print('a', A)
         Q = np.linalg.inv(np.dot(A.transpose(), A))
         # print('q', Q)
@@ -155,6 +160,6 @@ class Satellites:
 
 
 if __name__ == "__main__":
-    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt')
+    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2002, month=10, day=10), mask=10, observer_pos=[50,20,100])
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
