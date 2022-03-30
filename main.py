@@ -18,8 +18,9 @@ class Satellites:
 
         self.r_neu = self.r_neu(observer_pos[0], observer_pos[1], observer_pos[2])
 
-        self.visible_satellites = []
+        self.elevation_of_satellites = []
         self.satellites_ids = []
+        self.visible_satellites = [0 for i in range(24)]
 
         # WGS84
         self.a = 6378137
@@ -112,15 +113,12 @@ class Satellites:
             nav = self.naval[id, :]
             self.satellites_ids.append(nav[0])
             era_date = self.start_date
-            self.visible_satellites.append([])
+            self.elevation_of_satellites.append([])
+            index_era = 0
             while era_date <= self.end_date:
+                # print(era_date)
                 data = self.datetime_to_list(era_date)
                 week, tow = date2tow(data)
-                # print()
-                # print('era', era_date)
-
-
-
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
                 Xr = self.phi_lamda_to_xyz(52, 21, 100)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
@@ -133,8 +131,15 @@ class Satellites:
                 el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
                 el = np.degrees(el)
                 # print(el)
-                self.visible_satellites[-1].append(el)
-                # print(self.visible_satellites)
+                self.elevation_of_satellites[-1].append(el)
+
+                """ visible satellites """
+                # print(index_era)
+
+                if el > 0 and self.interval == timedelta(hours=1) and index_era < 24:
+                    self.visible_satellites[index_era] += 1
+                    pass
+
                 r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
                 if el > self.mask:
                     A1 = np.array([(-(Xs[0]-Xr[0]) / r),
@@ -143,6 +148,7 @@ class Satellites:
                                    1])
                     A = np.vstack([A, A1])
                 era_date += self.interval
+                index_era += 1
         # print(self.visible_satellites)
         Q = np.linalg.inv(np.dot(A.transpose(), A))
         # print('q', Q)
@@ -165,6 +171,9 @@ class Satellites:
     def set_interval(self, interval: timedelta):
         self.interval = interval
 
+    def show_elevation_of_satellites(self):
+        return self.elevation_of_satellites
+
     def show_visible_satellites(self):
         return self.visible_satellites
 
@@ -172,4 +181,10 @@ class Satellites:
 if __name__ == "__main__":
     sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
-    sat.satellites_coordinates()
+    # sat.satellites_coordinates()
+
+    sat_visible = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
+    sat_visible.interval = timedelta(hours=1)
+    print(sat_visible.interval)
+    sat_visible.satellites_coordinates()
+    print(sat_visible.visible_satellites)
