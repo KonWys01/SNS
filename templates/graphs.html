@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="site-header-logo">
+    <h1 class="text-center">
+        Code
+    </h1>
+</div>
+<div class="row p-4">
+    <div class="card ml-auto" style="width: 90%;">
+        <div class="card-body">
+            <div id="chart1">
+<!--                <p>-->
+<!--                    lorem80dfkjghdkjghdkgjhdfgkjdhgkdjfghdkfjghdfkjghdfg-->
+<!--                dfkjgdhkfljghdkgjdfhg-->
+<!--                dfglkjdghdlkghjdlkfg-->
+<!--                dfjklghdlfgkjdlfkgj-->
+<!--                </p>-->
+            </div>
+            <div id="chart2">
+<!--                <p>-->
+<!--                    lorem80dfkjghdkjghdkgjhdfgkjdhgkdjfghdkfjghdfkjghdfg-->
+<!--                dfkjgdhkfljghdkgjdfhg-->
+<!--                dfglkjdghdlkghjdlkfg-->
+<!--                dfjklghdlfgkjdlfkgj-->
+<!--                </p>-->
+            </div>
+            <div id="chart3">
+<!--                <p>-->
+<!--                    lorem80dfkjghdkjghdkgjhdfgkjdhgkdjfghdkfjghdfkjghdfg-->
+<!--                dfkjgdhkfljghdkgjdfhg-->
+<!--                dfglkjdghdlkghjdlkfg-->
+<!--                dfjklghdlfgkjdlfkgj-->
+<!--                </p>-->
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<!--<script>-->
+<!--    var graph1 = {{ graph1JSON | safe}};-->
+<!--    Plotly.plot("chart1", graph1, {})-->
+<!--</script>-->
+
+<script>
+    var graph2 = {{ graph1JSON | safe}};
+    Plotly.plot("chart1", graph2, {})
+</script>
+
+<script>
+    var graph2 = {{ graph2JSON | safe}};
+    Plotly.plot("chart2", graph2, {})
+</script>
+
+<script>
+    var graph3 = {{ graph3JSON | safe}};
+    Plotly.plot("chart3", graph3, {})
+</script>
+
+{% endblock %}

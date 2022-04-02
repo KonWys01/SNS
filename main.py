@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from python.read_yuma import read_yuma
 from python.date2tow import date2tow
@@ -21,6 +22,7 @@ class Satellites:
         self.elevation_of_satellites = []
         self.satellites_ids = []
         self.visible_satellites = [0 for i in range(24)]
+        self.DOP = [[], [], [], [], []]
 
         # WGS84
         self.a = 6378137
@@ -149,9 +151,10 @@ class Satellites:
                     A = np.vstack([A, A1])
                 era_date += self.interval
                 index_era += 1
+        print(A, A.size)
         # print(self.visible_satellites)
         Q = np.linalg.inv(np.dot(A.transpose(), A))
-        # print('q', Q)
+        print('q', Q)
         qx, qy, qz, qt = Q.diagonal()
         Qxyz = Q[:3, :3]
         # print('Qxyz', Qxyz)
@@ -159,7 +162,7 @@ class Satellites:
         PDOP = np.sqrt(qx + qy + qz)
         TDOP = np.sqrt(qt)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
-        # print(GDOP, PDOP, TDOP)
+        print(GDOP, PDOP, TDOP)
 
         Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
         # print('Qneu', Qneu)
@@ -167,6 +170,67 @@ class Satellites:
         HDOP = np.sqrt(qn + qe)
         VDOP = np.sqrt(qu)
         PDOPneu = np.sqrt(HDOP**2 + VDOP**2)
+
+    def satellites_coordinates_reversed(self):
+        A = np.zeros((0, 4))
+        number_of_satellites = self.naval.shape[0]
+
+        era_date = self.start_date
+        self.elevation_of_satellites.append([])
+        while era_date <= self.end_date:
+            data = self.datetime_to_list(era_date)
+            week, tow = date2tow(data)
+            A = np.zeros((0, 4))
+            for id in range(number_of_satellites):
+                nav = self.naval[id, :]
+                self.satellites_ids.append(nav[0])
+                # print(era_date)
+
+                Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
+                Xr = self.phi_lamda_to_xyz(52, 21, 100)
+                Xsr = [i - j for i, j in zip(Xs, Xr)]
+
+                neu = self.neu(self.r_neu, Xsr)  # satellite neu
+                n, e, u = neu
+
+                Az = np.arctan2(e, n)  # arctan(e/n)
+                Az = np.degrees(Az)
+                el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
+                el = np.degrees(el)
+
+                r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
+                if el > self.mask:
+                    A1 = np.array([(-(Xs[0]-Xr[0]) / r),
+                                   (-(Xs[1] - Xr[1]) / r),
+                                   (-(Xs[2] - Xr[2]) / r),
+                                   1])
+                    A = np.vstack([A, A1])
+            # print(self.visible_satellites)
+            Q = np.linalg.inv(np.dot(A.transpose(), A))
+            qx, qy, qz, qt = Q.diagonal()
+            Qxyz = Q[:3, :3]
+            # print('Qxyz', Qxyz)
+
+            PDOP = np.sqrt(qx + qy + qz)
+            TDOP = np.sqrt(qt)
+            GDOP = np.sqrt(PDOP ** 2 + TDOP ** 2)
+
+
+            Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
+            # print('Qneu', Qneu)
+            qn, qe, qu = Qneu.diagonal()
+            HDOP = np.sqrt(qn + qe)
+            VDOP = np.sqrt(qu)
+            PDOPneu = np.sqrt(HDOP ** 2 + VDOP ** 2)
+
+            # print(GDOP, PDOP, TDOP, HDOP, VDOP)
+            self.DOP[0].append(GDOP)
+            self.DOP[1].append(PDOP)
+            self.DOP[2].append(TDOP)
+            self.DOP[3].append(HDOP)
+            self.DOP[4].append(VDOP)
+            # print(self.DOP)
+            era_date += self.interval
 
     def set_interval(self, interval: timedelta):
         self.interval = interval
@@ -177,14 +241,23 @@ class Satellites:
     def show_visible_satellites(self):
         return self.visible_satellites
 
+    def show_DOP(self):
+        return self.DOP
+
 
 if __name__ == "__main__":
     sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     # sat.satellites_coordinates()
+    sat.satellites_coordinates_reversed()
+    print(sat.DOP)
 
-    sat_visible = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
-    sat_visible.interval = timedelta(hours=1)
-    print(sat_visible.interval)
-    sat_visible.satellites_coordinates()
-    print(sat_visible.visible_satellites)
+    DOP_zipped = list(zip(*sat.DOP))
+    data = pd.DataFrame(DOP_zipped, columns=['GDOP', 'PDOP', 'TDOP', 'HDOP', 'VDOP'])
+    print(data)
+
+    # sat_visible = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
+    # sat_visible.interval = timedelta(hours=1)
+    # print(sat_visible.interval)
+    # sat_visible.satellites_coordinates()
+    # print(sat_visible.visible_satellites)

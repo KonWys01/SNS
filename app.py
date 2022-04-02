@@ -70,7 +70,24 @@ def dane(start_date, mask, observer_pos):
     fig2.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
     graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
 
-    return render_template('graphs.html', graph1JSON=graph1JSON, graph2JSON=graph2JSON)
+
+    """ DOP """
+
+    sat_DOP = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25),
+                     mask=10, observer_pos=[50, 20, 100])
+    sat_DOP.satellites_coordinates_reversed()
+    print(sat_DOP.DOP)
+
+    DOP_zipped = list(zip(*sat_DOP.DOP))
+    DOP_names = ['GDOP', 'PDOP', 'TDOP', 'HDOP', 'VDOP']
+    data = pd.DataFrame(DOP_zipped, columns=DOP_names)
+    print(data)
+    fig3 = px.line(data, x=data.index, y=DOP_names)
+    # fig3.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
+    graph3JSON = json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+
+
+    return render_template('graphs.html', graph1JSON=graph1JSON, graph2JSON=graph2JSON, graph3JSON=graph3JSON)
 
 
 if __name__ == '__main__':
