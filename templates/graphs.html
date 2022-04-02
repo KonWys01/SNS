@@ -17,33 +17,18 @@
 <!--                </p>-->
             </div>
             <div id="chart2">
-<!--                <p>-->
-<!--                    lorem80dfkjghdkjghdkgjhdfgkjdhgkdjfghdkfjghdfkjghdfg-->
-<!--                dfkjgdhkfljghdkgjdfhg-->
-<!--                dfglkjdghdlkghjdlkfg-->
-<!--                dfjklghdlfgkjdlfkgj-->
-<!--                </p>-->
             </div>
             <div id="chart3">
-<!--                <p>-->
-<!--                    lorem80dfkjghdkjghdkgjhdfgkjdhgkdjfghdkfjghdfkjghdfg-->
-<!--                dfkjgdhkfljghdkgjdfhg-->
-<!--                dfglkjdghdlkghjdlkfg-->
-<!--                dfjklghdlfgkjdlfkgj-->
-<!--                </p>-->
+            </div>
+            <div id="chart4" style="margin-left: 450px;">
             </div>
         </div>
     </div>
 </div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<!--<script>-->
-<!--    var graph1 = {{ graph1JSON | safe}};-->
-<!--    Plotly.plot("chart1", graph1, {})-->
-<!--</script>-->
-
 <script>
-    var graph2 = {{ graph1JSON | safe}};
-    Plotly.plot("chart1", graph2, {})
+    var graph1 = {{ graph1JSON | safe}};
+    Plotly.plot("chart1", graph1, {})
 </script>
 
 <script>
@@ -54,6 +39,12 @@
 <script>
     var graph3 = {{ graph3JSON | safe}};
     Plotly.plot("chart3", graph3, {})
+</script>
+
+<script>
+    var graph4 = {{ graph4JSON | safe}};
+    Plotly.plot("chart4", graph4, {})
+
 </script>
 
 {% endblock %}

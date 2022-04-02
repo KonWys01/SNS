@@ -8,6 +8,7 @@ import plotly
 import plotly.express as px
 
 from main import Satellites
+from python.plotly_skyplot import plot_skyplot
 
 app = Flask(__name__)
 
@@ -83,11 +84,19 @@ def dane(start_date, mask, observer_pos):
     data = pd.DataFrame(DOP_zipped, columns=DOP_names)
     print(data)
     fig3 = px.line(data, x=data.index, y=DOP_names)
+    fig3.update_layout(title='Wykres DOP', xaxis_title='Era', yaxis_title='DOP')
     # fig3.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
     graph3JSON = json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
 
 
-    return render_template('graphs.html', graph1JSON=graph1JSON, graph2JSON=graph2JSON, graph3JSON=graph3JSON)
+    """Sky plot"""
+
+    sat_positions = [['PG01', 10, 180], ['PG02', 60, 0], ['PG03', 45, 45], ['aaa', 10, 20]]
+    fig4 = plot_skyplot(sat_positions)
+    fig4.update_layout(title='Skyplot - położenie satelitów')
+    graph4JSON = json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('graphs.html', graph1JSON=graph1JSON, graph2JSON=graph2JSON, graph3JSON=graph3JSON, graph4JSON=graph4JSON)
 
 
 if __name__ == '__main__':
