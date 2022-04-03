@@ -6,6 +6,7 @@ import pandas as pd
 
 from python.read_yuma import read_yuma
 from python.date2tow import date2tow
+from python.groundtrack import hirvonen
 
 
 class Satellites:
@@ -23,6 +24,7 @@ class Satellites:
         self.satellites_ids = []
         self.visible_satellites = [0 for i in range(24)]
         self.DOP = [[], [], [], [], []]
+        self.satellites_phi_lambda = []
 
         # WGS84
         self.a = 6378137
@@ -94,6 +96,14 @@ class Satellites:
         z = (N*(1-e2) + height)*np.sin(phi)
         return x, y, z
 
+    def xyz_to_phi_lambda(self, x: float, y: float, z: float):
+        R = 6371000
+        # print(x,y,z, self.a)
+        # lat = np.degrees(np.arcsin2(z, R))
+        lat = np.degrees(np.sin(z/R))
+        lon = np.degrees(np.arctan2(y, x))
+        return lat, lon, z/R
+
     @staticmethod
     def r_neu(phi: float, lamda: float, height: float):
         phi = np.deg2rad(phi)
@@ -111,6 +121,7 @@ class Satellites:
     def satellites_coordinates(self):
         A = np.zeros((0, 4))
         number_of_satellites = self.naval.shape[0]
+        self.satellites_phi_lambda = ([[[],[]] for i in range(number_of_satellites)])
         for id in range(number_of_satellites):
             nav = self.naval[id, :]
             self.satellites_ids.append(nav[0])
@@ -122,6 +133,9 @@ class Satellites:
                 data = self.datetime_to_list(era_date)
                 week, tow = date2tow(data)
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
+                self.xyz_to_phi_lambda(*Xs)
+                self.satellites_phi_lambda[id][0].append(hirvonen(*Xs)[0])
+                self.satellites_phi_lambda[id][1].append(hirvonen(*Xs)[1])
                 Xr = self.phi_lamda_to_xyz(52, 21, 100)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
 
@@ -151,10 +165,9 @@ class Satellites:
                     A = np.vstack([A, A1])
                 era_date += self.interval
                 index_era += 1
-        print(A, A.size)
-        # print(self.visible_satellites)
+            # break
         Q = np.linalg.inv(np.dot(A.transpose(), A))
-        print('q', Q)
+        # print('q', Q)
         qx, qy, qz, qt = Q.diagonal()
         Qxyz = Q[:3, :3]
         # print('Qxyz', Qxyz)
@@ -162,7 +175,7 @@ class Satellites:
         PDOP = np.sqrt(qx + qy + qz)
         TDOP = np.sqrt(qt)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
-        print(GDOP, PDOP, TDOP)
+        # print(GDOP, PDOP, TDOP)
 
         Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
         # print('Qneu', Qneu)
@@ -246,18 +259,22 @@ class Satellites:
 
 
 if __name__ == "__main__":
-    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
+    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=24), mask=10, observer_pos=[51,21,100])
+    # sat.interval = timedelta(hours=1)
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
-    # sat.satellites_coordinates()
-    sat.satellites_coordinates_reversed()
-    print(sat.DOP)
+    sat.satellites_coordinates()
+    import plotly.graph_objects as go
 
-    DOP_zipped = list(zip(*sat.DOP))
-    data = pd.DataFrame(DOP_zipped, columns=['GDOP', 'PDOP', 'TDOP', 'HDOP', 'VDOP'])
-    print(data)
-
-    # sat_visible = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
-    # sat_visible.interval = timedelta(hours=1)
-    # print(sat_visible.interval)
-    # sat_visible.satellites_coordinates()
-    # print(sat_visible.visible_satellites)
+    fig = go.Figure()
+    for i in range(len(sat.satellites_phi_lambda)):
+        lat_iterated = sat.satellites_phi_lambda[i][0]
+        lon_iterated = sat.satellites_phi_lambda[i][1]
+        fig.add_trace(
+            go.Scattergeo(
+                lon=lon_iterated,
+                lat=lat_iterated,
+                mode='lines',
+                name=f"{i + 1}"
+            )
+        )
+    fig.show()

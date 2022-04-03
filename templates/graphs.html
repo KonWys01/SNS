@@ -22,6 +22,8 @@
             </div>
             <div id="chart4" style="margin-left: 450px;">
             </div>
+            <div id="chart5">
+            </div>
         </div>
     </div>
 </div>
@@ -44,7 +46,11 @@
 <script>
     var graph4 = {{ graph4JSON | safe}};
     Plotly.plot("chart4", graph4, {})
+</script>
 
+<script>
+    var graph5 = {{ graph5JSON | safe}};
+    Plotly.plot("chart5", graph5, {})
 </script>
 
 {% endblock %}

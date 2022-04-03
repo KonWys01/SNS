@@ -6,6 +6,7 @@ import pandas as pd
 import json
 import plotly
 import plotly.express as px
+import plotly.graph_objects as go
 
 from main import Satellites
 from python.plotly_skyplot import plot_skyplot
@@ -89,7 +90,29 @@ def dane(start_date, mask, observer_pos):
     fig4.update_layout(title='Skyplot - położenie satelitów')
     graph4JSON = json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
 
-    return render_template('graphs.html', graph1JSON=graph1JSON, graph2JSON=graph2JSON, graph3JSON=graph3JSON, graph4JSON=graph4JSON)
+
+    """groundtrack"""
+    fig5 = go.Figure()
+    for i in range(len(sat.satellites_phi_lambda)):
+        lat_iterated = sat.satellites_phi_lambda[i][0]
+        lon_iterated = sat.satellites_phi_lambda[i][1]
+        fig5.add_trace(
+            go.Scattergeo(
+                lon=lon_iterated,
+                lat=lat_iterated,
+                mode='lines',
+                name=f"{i + 1}"
+            )
+        )
+    fig5.update_layout(title='Groundtrack satelit', width=1500, height=700)
+    graph5JSON = json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('graphs.html',
+                           graph1JSON=graph1JSON,
+                           graph2JSON=graph2JSON,
+                           graph3JSON=graph3JSON,
+                           graph4JSON=graph4JSON,
+                           graph5JSON=graph5JSON)
 
 
 if __name__ == '__main__':
