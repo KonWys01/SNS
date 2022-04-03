@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, make_response
 from datetime import datetime, timedelta
 
 import inflect
@@ -7,6 +7,7 @@ import json
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
+import ast
 
 from main import Satellites
 from python.plotly_skyplot import plot_skyplot
@@ -21,22 +22,29 @@ def home():
         phi = float(request.form['latitude'])
         lam = float(request.form['longitude'])
         h = float(request.form['height'])
-        observ_pos = list(Satellites.phi_lamda_to_xyz(phi, lam, h))
-        mask = int(request.form['mask'])
+        observ_pos = [phi, lam, h]
+        print('obserpos', observ_pos)
+        mask = request.form['mask']
 
-        # return redirect(url_for('dane', file_name='almanac.yuma.week0150.589824.txt', start_date=start_date, mask=mask, observer_pos=observ_pos))
-        return redirect(url_for('dane', start_date=start_date, mask=mask, observer_pos=observ_pos))
-        # return redirect(url_for('dane'))
+        res = make_response(redirect(url_for('dane')))
+        res.set_cookie("file_name",value='almanac.yuma.week0150.589824.txt')
+        res.set_cookie("mask", value=mask)
+        res.set_cookie("observer_pos", f"{observ_pos}")
+        res.set_cookie("start_date", f"{start_date}")
+        return res
     else:
         return render_template('index.html')
 
 
-@app.route('/wyniki<start_date><mask><observer_pos>', methods=['POST', 'GET'])
-def dane(start_date, mask, observer_pos):
-
-    file_name = 'almanac.yuma.week0150.589824.txt'
+@app.route('/wyniki', methods=['POST', 'GET'])
+def dane():
+    file_name = request.cookies.get('file_name')
+    mask = int(request.cookies.get('mask'))
+    observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
+    start_date = request.cookies.get('start_date')
+    start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
     """ elewacja """
-    sat = Satellites(file_name=file_name, start_date=datetime(year=2022, month=2, day=25), mask=10, observer_pos=[50,20,100])
+    sat = Satellites(file_name=file_name, start_date=start_date, mask=mask, observer_pos=observer_pos)
     era = sat.interval
     start_date = sat.start_date
     sat.satellites_coordinates()
@@ -57,9 +65,19 @@ def dane(start_date, mask, observer_pos):
     fig1.update_layout(title='Wykres elewacji satelit', xaxis_title='Era', yaxis={'title':'Wartość elewacji', 'rangemode':'nonnegative'})
     graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
 
-    """ widoczne satelity """
-    visible_satellites = Satellites(file_name=file_name, start_date=datetime(year=2022, month=2, day=25), mask=10,
-                     observer_pos=[50, 20, 100])
+    return render_template('graphs.html', graph1JSON=graph1JSON)
+
+
+@app.route('/widoczne', methods=['POST', 'GET'])
+def widoczne():
+    file_name = request.cookies.get('file_name')
+    mask = int(request.cookies.get('mask'))
+    observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
+    start_date = request.cookies.get('start_date')
+    start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+
+    visible_satellites = Satellites(file_name=file_name, start_date=start_date, mask=mask,
+                                    observer_pos=observer_pos)
     visible_satellites.interval = timedelta(hours=1)
     visible_satellites.satellites_coordinates()
     visible_satellites_data = visible_satellites.show_visible_satellites()
@@ -69,11 +87,19 @@ def dane(start_date, mask, observer_pos):
     fig2 = px.bar(data_visible, x=data_visible.index, y=['visible satellites'])
     fig2.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
     graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('widoczne.html', graph2JSON=graph2JSON)
 
 
-    """ DOP """
-    sat_DOP = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25),
-                     mask=10, observer_pos=[50, 20, 100])
+@app.route('/dop', methods=['POST', 'GET'])
+def dop():
+    file_name = request.cookies.get('file_name')
+    mask = int(request.cookies.get('mask'))
+    observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
+    start_date = request.cookies.get('start_date')
+    start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+
+    sat_DOP = Satellites(file_name=file_name, start_date=start_date,
+                         mask=mask, observer_pos=observer_pos)
     sat_DOP.satellites_coordinates_reversed()
 
     DOP_zipped = list(zip(*sat_DOP.DOP))
@@ -82,16 +108,30 @@ def dane(start_date, mask, observer_pos):
     fig3 = px.line(data, x=data.index, y=DOP_names)
     fig3.update_layout(title='Wykres DOP', xaxis_title='Era', yaxis_title='DOP')
     graph3JSON = json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('dop.html', graph3JSON=graph3JSON)
 
 
-    """Sky plot"""
+@app.route('/skyplot', methods=['POST', 'GET'])
+def skyplot():
     sat_positions = [['PG01', 10, 180], ['PG02', 60, 0], ['PG03', 45, 45], ['aaa', 10, 20]]
     fig4 = plot_skyplot(sat_positions)
     fig4.update_layout(title='Skyplot - położenie satelitów')
     graph4JSON = json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('skyplot.html', graph4JSON=graph4JSON)
 
 
-    """groundtrack"""
+@app.route('/groundtrack', methods=['POST', 'GET'])
+def groundtrack():
+    file_name = request.cookies.get('file_name')
+    mask = int(request.cookies.get('mask'))
+    observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
+    start_date = request.cookies.get('start_date')
+    start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+
+    sat = Satellites(file_name=file_name, start_date=start_date, mask=mask,
+                     observer_pos=observer_pos)
+    sat.satellites_coordinates()
+
     fig5 = go.Figure()
     for i in range(len(sat.satellites_phi_lambda)):
         lat_iterated = sat.satellites_phi_lambda[i][0]
@@ -104,15 +144,9 @@ def dane(start_date, mask, observer_pos):
                 name=f"{i + 1}"
             )
         )
-    fig5.update_layout(title='Groundtrack satelit', width=1500, height=700)
+    fig5.update_layout(title='Groundtrack satelit', height=700)
     graph5JSON = json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
-
-    return render_template('graphs.html',
-                           graph1JSON=graph1JSON,
-                           graph2JSON=graph2JSON,
-                           graph3JSON=graph3JSON,
-                           graph4JSON=graph4JSON,
-                           graph5JSON=graph5JSON)
+    return render_template('groundtrack.html', graph5JSON=graph5JSON)
 
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ def plot_skyplot(sat_positions):
                 direction='clockwise'),
             radialaxis=dict(
                 range=[90, 1])
-        ), width=700,
+        ),
         height=700,
         # font={'color': 'red'}
     )

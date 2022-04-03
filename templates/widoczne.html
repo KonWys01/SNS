@@ -16,41 +16,13 @@
 <!--                dfjklghdlfgkjdlfkgj-->
 <!--                </p>-->
             </div>
-            <div id="chart2">
-            </div>
-            <div id="chart3">
-            </div>
-            <div id="chart4" style="margin-left: 450px;">
-            </div>
-            <div id="chart5">
-            </div>
         </div>
     </div>
 </div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
-    var graph1 = {{ graph1JSON | safe}};
+    var graph1 = {{ graph2JSON | safe}};
     Plotly.plot("chart1", graph1, {})
-</script>
-
-<script>
-    var graph2 = {{ graph2JSON | safe}};
-    Plotly.plot("chart2", graph2, {})
-</script>
-
-<script>
-    var graph3 = {{ graph3JSON | safe}};
-    Plotly.plot("chart3", graph3, {})
-</script>
-
-<script>
-    var graph4 = {{ graph4JSON | safe}};
-    Plotly.plot("chart4", graph4, {})
-</script>
-
-<script>
-    var graph5 = {{ graph5JSON | safe}};
-    Plotly.plot("chart5", graph5, {})
 </script>
 
 {% endblock %}
