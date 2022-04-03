@@ -52,9 +52,8 @@ def dane(start_date, mask, observer_pos):
         satellites_names.append(p.number_to_words(ids[i]))
 
     data = pd.DataFrame(satellites_zipped, index=dates, columns=satellites_names)
-    print(data)
     fig1 = px.line(data, x=data.index, y=satellites_names)
-    fig1.update_layout(title='Wykres elewacji satelit', xaxis_title='Era', yaxis_title='Wartość elewacji')
+    fig1.update_layout(title='Wykres elewacji satelit', xaxis_title='Era', yaxis={'title':'Wartość elewacji', 'rangemode':'nonnegative'})
     graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
 
     """ widoczne satelity """
@@ -66,31 +65,25 @@ def dane(start_date, mask, observer_pos):
     dates_visible = [i for i in range(1, 25)]
 
     data_visible = pd.DataFrame(visible_satellites_data, index=dates_visible, columns=['visible satellites'])
-    print(data_visible)
     fig2 = px.bar(data_visible, x=data_visible.index, y=['visible satellites'])
     fig2.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
     graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
 
 
     """ DOP """
-
     sat_DOP = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=25),
                      mask=10, observer_pos=[50, 20, 100])
     sat_DOP.satellites_coordinates_reversed()
-    print(sat_DOP.DOP)
 
     DOP_zipped = list(zip(*sat_DOP.DOP))
     DOP_names = ['GDOP', 'PDOP', 'TDOP', 'HDOP', 'VDOP']
     data = pd.DataFrame(DOP_zipped, columns=DOP_names)
-    print(data)
     fig3 = px.line(data, x=data.index, y=DOP_names)
     fig3.update_layout(title='Wykres DOP', xaxis_title='Era', yaxis_title='DOP')
-    # fig3.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
     graph3JSON = json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
 
 
     """Sky plot"""
-
     sat_positions = [['PG01', 10, 180], ['PG02', 60, 0], ['PG03', 45, 45], ['aaa', 10, 20]]
     fig4 = plot_skyplot(sat_positions)
     fig4.update_layout(title='Skyplot - położenie satelitów')

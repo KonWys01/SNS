@@ -18,7 +18,9 @@ def plot_skyplot(sat_positions):
             mode='text',
             name='Satelity',
             showlegend=True,
-        ))
+            textfont={'color': 'red', 'family': 'Open Sans', 'size': 20}
+        )
+    )
     fig2.update_layout(polar=dict(
             angularaxis=dict(
                 thetaunit="degrees",
@@ -28,8 +30,10 @@ def plot_skyplot(sat_positions):
             radialaxis=dict(
                 range=[90, 1])
         ), width=700,
-        height=700)
-    # fig2.show()
+        height=700,
+        # font={'color': 'red'}
+    )
+
     return fig2
 
 
