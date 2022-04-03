@@ -1,36 +1,43 @@
 {% extends 'base.html' %}
 {% block content %}
     <form method="post">
-    <div class="form-group row">
-        <div class="form-group col-md-3">
-          <label for="StartDate">Start Date</label>
-          <input type="datetime-local" class="form-control" id="StartDate" placeholder="Enter Start Date" name="start_date" value="2022-03-25T17:30">
-    <!--      <small id="StartDate_id" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
-        </div>
-        <div class="form-group col-md-3">
-          <label for="Mask">Mask</label>
-          <input type="number" class="form-control" id="Mask"  placeholder="Enter Mask" name="mask" value="10">
+    <div class="row p-4">
+        <div class="card ml-auto" style="width: 100%;">
+            <div class="card-body">
+                <div id="chart1" data-aos="slide-up">
+                        <div class="form-group row centered" data-aos="slide-up">
+                            <div class="form-group col-md-3">
+                              <label for="StartDate">Start Date</label>
+                              <input type="datetime-local" class="form-control" id="StartDate" placeholder="Enter Start Date" name="start_date" value="2022-03-25T17:30">
+                        <!--      <small id="StartDate_id" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
+                            </div>
+                            <div class="form-group col-md-3">
+                              <label for="Mask">Mask</label>
+                              <input type="number" class="form-control" id="Mask"  placeholder="Enter Mask" name="mask" value="10">
+                            </div>
+                        </div>
+                        <div class="form-group row centered" data-aos="slide-up">
+                            <div class="form-group col-md-2">
+                              <label for="Latitude">Latitude</label>
+                              <input type="number" class="form-control" id="Latitude" placeholder="Enter Latitude" name="latitude" value="50">
+                        <!--      <small id="StartDate_id" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
+                            </div>
+                            <div class="form-group col-md-2">
+                              <label for="Longitude">Longitude</label>
+                              <input type="number" class="form-control" id="Longitude" placeholder="Enter Longitude" name="longitude" value="21">
+                            </div>
+                            <div class="form-group col-md-2">
+                              <label for="Height">Height</label>
+                              <input type="number" class="form-control" id="Height" placeholder="Enter Height" name="height" value="100">
+                            </div>
+                        </div>
+                        <div class="form-group row centered" style="margin-left: 5%; margin-right: 5%; margin-top: 2%">
+                            <button type="submit" class="btn btn-primary col-md-6" data-aos="slide-up">Submit</button>
+                        </div>
+
+                    </div>
+            </div>
         </div>
     </div>
-    <div class="form-group row">
-        <div class="form-group col-md-2">
-          <label for="Latitude">Latitude</label>
-          <input type="number" class="form-control" id="Latitude" placeholder="Enter Latitude" name="latitude" value="50">
-    <!--      <small id="StartDate_id" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
-        </div>
-        <div class="form-group col-md-2">
-          <label for="Longitude">Longitude</label>
-          <input type="number" class="form-control" id="Longitude" placeholder="Enter Longitude" name="longitude" value="21">
-        </div>
-        <div class="form-group col-md-2">
-          <label for="Height">Height</label>
-          <input type="number" class="form-control" id="Height" placeholder="Enter Height" name="height" value="100">
-        </div>
-    </div>
-<!--    <div class="form-group col-md-6">-->
-<!--      <label for="EndDate">Mask</label>-->
-<!--      <input type="number" class="form-control" id="Mask"  placeholder="Enter Mask" name="mask">-->
-<!--    </div>-->
-    <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 {% endblock %}

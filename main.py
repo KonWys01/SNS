@@ -152,7 +152,7 @@ class Satellites:
                 """ visible satellites """
                 # print(index_era)
 
-                if el > 0 and self.interval == timedelta(hours=1) and index_era < 24:
+                if el > self.mask and self.interval == timedelta(hours=1) and index_era < 24:
                     self.visible_satellites[index_era] += 1
                     pass
 

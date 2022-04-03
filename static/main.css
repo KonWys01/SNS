@@ -19,6 +19,9 @@
   margin: 0;
   /*font-family: work_sansregular;*/
 }
+.centered {
+  justify-content: center;
+}
 
 .navbar-text {
   color: rgb(250, 250, 250);
