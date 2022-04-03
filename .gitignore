@@ -141,3 +141,9 @@ SNS_DOP.pdf
 wyniki_el_az.txt
 wyniki_DOP.txt
 testing.py
+python/Coastline.txt
+python/groundtrack_stud.py
+python/plot_world_map_groundtrack.py
+python/skyplot2.py
+python/skyplot_one_epoch.py
+routes.py
