@@ -154,7 +154,6 @@ class Satellites:
 
                 if el > self.mask and self.interval == timedelta(hours=1) and index_era < 24:
                     self.visible_satellites[index_era] += 1
-                    pass
 
                 r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
                 if el > self.mask:
@@ -259,22 +258,24 @@ class Satellites:
 
 
 if __name__ == "__main__":
-    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=24), mask=10, observer_pos=[51,21,100])
-    # sat.interval = timedelta(hours=1)
+    sat = Satellites(file_name='current_almanac.alm', start_date=datetime(year=2022, month=2, day=24), mask=10, observer_pos=[51,21,100])
+    sat.interval = timedelta(hours=1)
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
-    import plotly.graph_objects as go
-
-    fig = go.Figure()
-    for i in range(len(sat.satellites_phi_lambda)):
-        lat_iterated = sat.satellites_phi_lambda[i][0]
-        lon_iterated = sat.satellites_phi_lambda[i][1]
-        fig.add_trace(
-            go.Scattergeo(
-                lon=lon_iterated,
-                lat=lat_iterated,
-                mode='lines',
-                name=f"{i + 1}"
-            )
-        )
-    fig.show()
+    # sat.visible_satellites
+    print(sat.visible_satellites)
+    # import plotly.graph_objects as go
+    #
+    # fig = go.Figure()
+    # for i in range(len(sat.satellites_phi_lambda)):
+    #     lat_iterated = sat.satellites_phi_lambda[i][0]
+    #     lon_iterated = sat.satellites_phi_lambda[i][1]
+    #     fig.add_trace(
+    #         go.Scattergeo(
+    #             lon=lon_iterated,
+    #             lat=lat_iterated,
+    #             mode='lines',
+    #             name=f"{i + 1}"
+    #         )
+    #     )
+    # fig.show()

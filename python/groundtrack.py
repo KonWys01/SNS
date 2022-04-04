@@ -44,7 +44,7 @@ def hirvonen(x, y, z):
         else:
             phi = new_phi
 
-    lam = np.arctan(y / x)
+    lam = np.arctan2(y, x)
     return np.degrees(phi), np.degrees(lam), h
 
 if __name__ == "__main__":

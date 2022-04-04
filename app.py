@@ -8,6 +8,7 @@ import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 import ast
+import urllib.request
 
 from main import Satellites
 from python.plotly_skyplot import plot_skyplot
@@ -18,16 +19,23 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
+        file_chosen = request.form['almach']
+        if file_chosen == 'default_almach':
+            file_name = 'almanac.yuma.week0150.589824.txt'
+        else:
+            url_current = 'https://www.navcen.uscg.gov/?pageName=currentAlmanac&format=yuma'
+            almanac_name = 'current_almanac.alm'
+            urllib.request.urlretrieve(url_current, almanac_name)
+            file_name = almanac_name
         start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%dT%H:%M')
         phi = float(request.form['latitude'])
         lam = float(request.form['longitude'])
         h = float(request.form['height'])
         observ_pos = [phi, lam, h]
-        print('obserpos', observ_pos)
         mask = request.form['mask']
 
         res = make_response(redirect(url_for('dane')))
-        res.set_cookie("file_name",value='almanac.yuma.week0150.589824.txt')
+        res.set_cookie("file_name", value=file_name)
         res.set_cookie("mask", value=mask)
         res.set_cookie("observer_pos", f"{observ_pos}")
         res.set_cookie("start_date", f"{start_date}")
@@ -39,6 +47,7 @@ def home():
 @app.route('/wyniki', methods=['POST', 'GET'])
 def dane():
     file_name = request.cookies.get('file_name')
+    print(file_name)
     mask = int(request.cookies.get('mask'))
     observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
     start_date = request.cookies.get('start_date')
@@ -144,6 +153,23 @@ def groundtrack():
                 name=f"{i + 1}"
             )
         )
+    # fig5.update_layout(
+    #     geo=dict(
+    #         projection=dict(
+    #             type='orthographic'
+    #         ),
+    #         lonaxis=dict(
+    #             showgrid=True,
+    #             gridcolor='rgb(102, 102, 102)',
+    #             gridwidth=0.5
+    #         ),
+    #         lataxis=dict(
+    #             showgrid=True,
+    #             gridcolor='rgb(102, 102, 102)',
+    #             gridwidth=0.5
+    #         )
+    #     )
+    # )
     fig5.update_layout(title='Groundtrack satelit', height=700)
     graph5JSON = json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('groundtrack.html', graph5JSON=graph5JSON)
