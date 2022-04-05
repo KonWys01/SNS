@@ -153,26 +153,59 @@ def groundtrack():
                 name=f"{i + 1}"
             )
         )
-    # fig5.update_layout(
-    #     geo=dict(
-    #         projection=dict(
-    #             type='orthographic'
-    #         ),
-    #         lonaxis=dict(
-    #             showgrid=True,
-    #             gridcolor='rgb(102, 102, 102)',
-    #             gridwidth=0.5
-    #         ),
-    #         lataxis=dict(
-    #             showgrid=True,
-    #             gridcolor='rgb(102, 102, 102)',
-    #             gridwidth=0.5
-    #         )
-    #     )
-    # )
-    fig5.update_layout(title='Groundtrack satelit', height=700)
+    fig5.update_layout(title='Groundtrack satelit', height=1000)
     graph5JSON = json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('groundtrack.html', graph5JSON=graph5JSON)
+
+
+@app.route('/global', methods=['POST', 'GET'])
+def global_satellites():
+    file_name = request.cookies.get('file_name')
+    mask = int(request.cookies.get('mask'))
+    observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
+    start_date = request.cookies.get('start_date')
+    start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+
+    sat = Satellites(file_name=file_name, start_date=start_date, mask=mask,
+                     observer_pos=observer_pos)
+    sat.satellites_coordinates()
+
+    print(1)
+    fig6 = go.Figure()
+    for i in range(len(sat.satellites_phi_lambda)):
+        lat_iterated = sat.satellites_phi_lambda[i][0]
+        lon_iterated = sat.satellites_phi_lambda[i][1]
+        fig6.add_trace(
+            go.Scattergeo(
+                lon=lon_iterated,
+                lat=lat_iterated,
+                mode='lines',
+                name=f"{i + 1}"
+            )
+        )
+    print(2)
+    fig6.update_layout(
+        geo=dict(
+            projection=dict(
+                type='orthographic'
+            ),
+            lonaxis=dict(
+                showgrid=True,
+                gridcolor='rgb(102, 102, 102)',
+                gridwidth=0.5
+            ),
+            lataxis=dict(
+                showgrid=True,
+                gridcolor='rgb(102, 102, 102)',
+                gridwidth=0.5
+            )
+        )
+    )
+    print(3)
+    fig6.update_layout(title='Globalna widoczność satelit', height=1000)
+    graph6JSON = json.dumps(fig6, cls=plotly.utils.PlotlyJSONEncoder)
+    print(4)
+    return render_template('global_satellites.html', graph6JSON=graph6JSON)
 
 
 if __name__ == '__main__':
