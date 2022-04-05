@@ -71,7 +71,7 @@ def dane():
 
     data = pd.DataFrame(satellites_zipped, index=dates, columns=satellites_names)
     fig1 = px.line(data, x=data.index, y=satellites_names)
-    fig1.update_layout(title='Wykres elewacji satelit', xaxis_title='Era', yaxis={'title':'Wartość elewacji', 'rangemode':'nonnegative'})
+    fig1.update_layout(title='Wykres elewacji satelit', xaxis_title='Era', yaxis={'title':'Wartość elewacji', 'range': (mask, 90)})
     graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
 
     return render_template('graphs.html', graph1JSON=graph1JSON)
@@ -122,7 +122,17 @@ def dop():
 
 @app.route('/skyplot', methods=['POST', 'GET'])
 def skyplot():
-    sat_positions = [['PG01', 10, 180], ['PG02', 60, 0], ['PG03', 45, 45], ['aaa', 10, 20]]
+    file_name = request.cookies.get('file_name')
+    mask = int(request.cookies.get('mask'))
+    observer_pos = ast.literal_eval(request.cookies.get('observer_pos'))
+    start_date = request.cookies.get('start_date')
+    start_date = datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')
+
+    sat_skyplot = Satellites(file_name=file_name, start_date=start_date,
+                         mask=mask, observer_pos=observer_pos)
+    sat_skyplot.satellites_coordinates_skyplot()
+
+    sat_positions = sat_skyplot.show_skyplot_positions()
     fig4 = plot_skyplot(sat_positions)
     fig4.update_layout(title='Skyplot - położenie satelitów')
     graph4JSON = json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
@@ -170,7 +180,6 @@ def global_satellites():
                      observer_pos=observer_pos)
     sat.satellites_coordinates()
 
-    print(1)
     fig6 = go.Figure()
     for i in range(len(sat.satellites_phi_lambda)):
         lat_iterated = sat.satellites_phi_lambda[i][0]
@@ -183,7 +192,6 @@ def global_satellites():
                 name=f"{i + 1}"
             )
         )
-    print(2)
     fig6.update_layout(
         geo=dict(
             projection=dict(
@@ -201,10 +209,8 @@ def global_satellites():
             )
         )
     )
-    print(3)
     fig6.update_layout(title='Globalna widoczność satelit', height=1000)
     graph6JSON = json.dumps(fig6, cls=plotly.utils.PlotlyJSONEncoder)
-    print(4)
     return render_template('global_satellites.html', graph6JSON=graph6JSON)
 
 

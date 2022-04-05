@@ -25,6 +25,7 @@ class Satellites:
         self.visible_satellites = [0 for i in range(24)]
         self.DOP = [[], [], [], [], []]
         self.satellites_phi_lambda = []
+        self.skyplot_positions = []
 
         # WGS84
         self.a = 6378137
@@ -174,7 +175,7 @@ class Satellites:
         PDOP = np.sqrt(qx + qy + qz)
         TDOP = np.sqrt(qt)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
-        # print(GDOP, PDOP, TDOP)
+        print(GDOP, PDOP, TDOP)
 
         Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
         # print('Qneu', Qneu)
@@ -217,6 +218,7 @@ class Satellites:
                                    (-(Xs[2] - Xr[2]) / r),
                                    1])
                     A = np.vstack([A, A1])
+                    self.skyplot_positions.append([f'{id+1}', Az, el])
             # print(self.visible_satellites)
             Q = np.linalg.inv(np.dot(A.transpose(), A))
             qx, qy, qz, qt = Q.diagonal()
@@ -244,6 +246,36 @@ class Satellites:
             # print(self.DOP)
             era_date += self.interval
 
+    def satellites_coordinates_skyplot(self):
+        number_of_satellites = self.naval.shape[0]
+
+        era_date = self.start_date
+        self.elevation_of_satellites.append([])
+        while era_date <= self.end_date:
+            data = self.datetime_to_list(era_date)
+            week, tow = date2tow(data)
+            for id in range(number_of_satellites):
+                nav = self.naval[id, :]
+                self.satellites_ids.append(nav[0])
+                # print(era_date)
+
+                Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
+                Xr = self.phi_lamda_to_xyz(52, 21, 100)
+                Xsr = [i - j for i, j in zip(Xs, Xr)]
+
+                neu = self.neu(self.r_neu, Xsr)  # satellite neu
+                n, e, u = neu
+
+                Az = np.arctan2(e, n)  # arctan(e/n)
+                Az = np.degrees(Az)
+                el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
+                el = np.degrees(el)
+
+                if el > self.mask:
+                    self.skyplot_positions.append([f'{id+1}', el, Az])
+            break
+
+
     def set_interval(self, interval: timedelta):
         self.interval = interval
 
@@ -256,14 +288,17 @@ class Satellites:
     def show_DOP(self):
         return self.DOP
 
+    def show_skyplot_positions(self):
+        return self.skyplot_positions
+
 
 if __name__ == "__main__":
-    sat = Satellites(file_name='current_almanac.alm', start_date=datetime(year=2022, month=2, day=24), mask=10, observer_pos=[51,21,100])
-    sat.interval = timedelta(hours=1)
+    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=24), mask=10, observer_pos=[51,21,100])
+    sat.interval = timedelta(minutes=15)
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
+
     # sat.visible_satellites
-    print(sat.visible_satellites)
     # import plotly.graph_objects as go
     #
     # fig = go.Figure()
