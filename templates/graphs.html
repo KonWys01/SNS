@@ -2,19 +2,13 @@
 {% block content %}
 <div class="site-header-logo">
     <h1 class="text-center">
-        Code
+        SNS
     </h1>
 </div>
 <div class="row p-4">
     <div class="card ml-auto" style="width: 100%;">
         <div class="card-body">
             <div id="chart1" style="alignment: center " data-aos="slide-up">
-<!--                <p>-->
-<!--                    lorem80dfkjghdkjghdkgjhdfgkjdhgkdjfghdkfjghdfkjghdfg-->
-<!--                dfkjgdhkfljghdkgjdfhg-->
-<!--                dfglkjdghdlkghjdlkfg-->
-<!--                dfjklghdlfgkjdlfkgj-->
-<!--                </p>-->
             </div>
             <div id="chart2">
             </div>
@@ -31,26 +25,6 @@
 <script>
     var graph1 = {{ graph1JSON | safe}};
     Plotly.plot("chart1", graph1, {})
-</script>
-
-<script>
-    var graph2 = {{ graph2JSON | safe}};
-    Plotly.plot("chart2", graph2, {})
-</script>
-
-<script>
-    var graph3 = {{ graph3JSON | safe}};
-    Plotly.plot("chart3", graph3, {})
-</script>
-
-<script>
-    var graph4 = {{ graph4JSON | safe}};
-    Plotly.plot("chart4", graph4, {})
-</script>
-
-<script>
-    var graph5 = {{ graph5JSON | safe}};
-    Plotly.plot("chart5", graph5, {})
 </script>
 
 {% endblock %}
