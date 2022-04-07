@@ -70,8 +70,9 @@ def dane():
         satellites_names.append(p.number_to_words(ids[i]))
 
     data = pd.DataFrame(satellites_zipped, index=dates, columns=satellites_names)
+    print(data)
     fig1 = px.line(data, x=data.index, y=satellites_names)
-    fig1.update_layout(title='Wykres elewacji satelit', xaxis_title='Era', yaxis={'title':'Wartość elewacji', 'range': (mask, 90)})
+    fig1.update_layout(title='Wykres elewacji satelitów', xaxis_title='Era', yaxis={'title':'Wartość elewacji', 'range': (mask, 90)})
     graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
 
     return render_template('graphs.html', graph1JSON=graph1JSON)
@@ -87,14 +88,15 @@ def widoczne():
 
     visible_satellites = Satellites(file_name=file_name, start_date=start_date, mask=mask,
                                     observer_pos=observer_pos)
-    visible_satellites.interval = timedelta(hours=1)
+    # visible_satellites.interval = timedelta(minutes=15)
+    visible_satellites.interval = timedelta(minutes=15)
     visible_satellites.satellites_coordinates()
     visible_satellites_data = visible_satellites.show_visible_satellites()
-    dates_visible = [i for i in range(1, 25)]
-
+    dates_visible = [i for i in range(1, 97)]
+    print(visible_satellites_data)
     data_visible = pd.DataFrame(visible_satellites_data, index=dates_visible, columns=['visible satellites'])
     fig2 = px.bar(data_visible, x=data_visible.index, y=['visible satellites'])
-    fig2.update_layout(title='Wykres widocznych satelit', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
+    fig2.update_layout(title='Wykres widocznych satelitów', xaxis_title='Era', yaxis_title='Liczba widocznych satelit')
     graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('widoczne.html', graph2JSON=graph2JSON)
 
@@ -163,7 +165,7 @@ def groundtrack():
                 name=f"{i + 1}"
             )
         )
-    fig5.update_layout(title='Groundtrack satelit', height=1000)
+    fig5.update_layout(title='Groundtrack satelitów', height=1000)
     graph5JSON = json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('groundtrack.html', graph5JSON=graph5JSON)
 
@@ -209,7 +211,7 @@ def global_satellites():
             )
         )
     )
-    fig6.update_layout(title='Globalna widoczność satelit', height=1000)
+    fig6.update_layout(title='Globalna widoczność satelitów', height=1000)
     graph6JSON = json.dumps(fig6, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('global_satellites.html', graph6JSON=graph6JSON)
 

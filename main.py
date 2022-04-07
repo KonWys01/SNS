@@ -22,7 +22,7 @@ class Satellites:
 
         self.elevation_of_satellites = []
         self.satellites_ids = []
-        self.visible_satellites = [0 for i in range(24)]
+        self.visible_satellites = [0 for i in range(96)]
         self.DOP = [[], [], [], [], []]
         self.satellites_phi_lambda = []
         self.skyplot_positions = []
@@ -153,7 +153,7 @@ class Satellites:
                 """ visible satellites """
                 # print(index_era)
 
-                if el > self.mask and self.interval == timedelta(hours=1) and index_era < 24:
+                if el > self.mask and self.interval == timedelta(minutes=15) and index_era < 96:
                     self.visible_satellites[index_era] += 1
 
                 r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
@@ -297,6 +297,7 @@ if __name__ == "__main__":
     sat.interval = timedelta(minutes=15)
     # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
+    print(sat.elevation_of_satellites)
 
     # sat.visible_satellites
     # import plotly.graph_objects as go
