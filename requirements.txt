@@ -1,5 +1,7 @@
-numpy
-Flask
-plotly
-plotly-express
-pandas
+numpy==1.21.5
+Flask==2.0.3
+plotly==5.6.0
+plotly-express==0.4.1
+pandas==1.4.1
+inflect==5.4.0
+matplotlib==3.5.1
