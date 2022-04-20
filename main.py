@@ -17,6 +17,7 @@ class Satellites:
         self.end_date = self.start_date + timedelta(days=1)
         self.interval = timedelta(minutes=15)
         self.mask = mask
+        self.obs_pos = observer_pos
 
         self.r_neu = self.r_neu(observer_pos[0], observer_pos[1], observer_pos[2])
 
@@ -137,16 +138,16 @@ class Satellites:
                 self.xyz_to_phi_lambda(*Xs)
                 self.satellites_phi_lambda[id][0].append(hirvonen(*Xs)[0])
                 self.satellites_phi_lambda[id][1].append(hirvonen(*Xs)[1])
-                Xr = self.phi_lamda_to_xyz(52, 21, 100)
+                Xr = self.phi_lamda_to_xyz(*self.obs_pos)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
 
                 neu = self.neu(self.r_neu, Xsr)  # satellite neu
                 n, e, u = neu
 
                 Az = np.arctan2(e, n)  # arctan(e/n)
-                Az = np.degrees(Az)
+                Az = np.rad2deg(Az)
                 el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
-                el = np.degrees(el)
+                el = np.rad2deg(el)
                 # print(el)
                 self.elevation_of_satellites[-1].append(el)
 
@@ -200,7 +201,7 @@ class Satellites:
                 # print(era_date)
 
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
-                Xr = self.phi_lamda_to_xyz(52, 21, 100)
+                Xr = self.phi_lamda_to_xyz(*self.obs_pos)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
 
                 neu = self.neu(self.r_neu, Xsr)  # satellite neu
@@ -260,7 +261,7 @@ class Satellites:
                 # print(era_date)
 
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
-                Xr = self.phi_lamda_to_xyz(52, 21, 100)
+                Xr = self.phi_lamda_to_xyz(*self.obs_pos)
                 Xsr = [i - j for i, j in zip(Xs, Xr)]
 
                 neu = self.neu(self.r_neu, Xsr)  # satellite neu
