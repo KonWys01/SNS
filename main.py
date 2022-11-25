@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 
 from python.read_yuma import read_yuma
 from python.date2tow import date2tow
@@ -10,7 +8,9 @@ from python.groundtrack import hirvonen
 
 
 class Satellites:
-    def __init__(self, file_name: str, start_date: datetime, mask: int, observer_pos: list):
+    def __init__(
+        self, file_name: str, start_date: datetime, mask: int, observer_pos: list
+    ):
         self.file = file_name
         self.naval = self.read_file()
         self.start_date = start_date
@@ -41,37 +41,46 @@ class Satellites:
 
     @staticmethod
     def datetime_to_list(date: datetime):
-        date = [date.year,
-                date.month,
-                date.day,
-                date.hour,
-                date.minute,
-                date.second]
+        date = [date.year, date.month, date.day, date.hour, date.minute, date.second]
         return date
 
     @staticmethod
     def satellite_xyz(week: int, tow: int, nav: np.ndarray):
-        id, health, e, toa, i, omega_dot, sqrta, Omega, omega, m0, alfa, alfa1, gps_week = nav
+        (
+            id,
+            health,
+            e,
+            toa,
+            i,
+            omega_dot,
+            sqrta,
+            Omega,
+            omega,
+            m0,
+            alfa,
+            alfa1,
+            gps_week,
+        ) = nav
 
         t = week * 7 * 86400 + tow
         toa_weeks = gps_week * 7 * 86400 + toa
         tk = t - toa_weeks
 
         """algorytm"""
-        u = 3.986005 * (10 ** 14)
-        omega_e = 7.2921151467 * (10 ** -5)
-        a = sqrta ** 2
-        n = np.sqrt(u / (a ** 3))
+        u = 3.986005 * (10**14)
+        omega_e = 7.2921151467 * (10**-5)
+        a = sqrta**2
+        n = np.sqrt(u / (a**3))
         Mk = m0 + n * tk
 
         E1 = Mk
         Ei = Mk + e * np.sin(E1)
-        while np.fabs(Ei - E1) >= (10 ** -12):
+        while np.fabs(Ei - E1) >= (10**-12):
             E1 = Ei
             Ei = Mk + e * np.sin(E1)
 
         Ek = Ei
-        vk = np.arctan2(np.sqrt(1 - e ** 2) * np.sin(Ek), np.cos(Ek) - e)
+        vk = np.arctan2(np.sqrt(1 - e**2) * np.sin(Ek), np.cos(Ek) - e)
 
         phi_k = vk + omega
         rk = a * (1 - e * np.cos(Ek))
@@ -91,28 +100,38 @@ class Satellites:
         e2 = 0.00669438002290
         phi = np.deg2rad(phi)
         lamda = np.deg2rad(lamda)
-        N = a / (np.sqrt(1 - e2*(np.sin(phi)**2)))
+        N = a / (np.sqrt(1 - e2 * (np.sin(phi) ** 2)))
 
-        x = (N + height)*np.cos(phi)*np.cos(lamda)
-        y = (N + height)*np.cos(phi)*np.sin(lamda)
-        z = (N*(1-e2) + height)*np.sin(phi)
+        x = (N + height) * np.cos(phi) * np.cos(lamda)
+        y = (N + height) * np.cos(phi) * np.sin(lamda)
+        z = (N * (1 - e2) + height) * np.sin(phi)
         return x, y, z
 
     def xyz_to_phi_lambda(self, x: float, y: float, z: float):
         R = 6371000
-        # print(x,y,z, self.a)
-        # lat = np.degrees(np.arcsin2(z, R))
-        lat = np.degrees(np.sin(z/R))
+        lat = np.degrees(np.sin(z / R))
         lon = np.degrees(np.arctan2(y, x))
-        return lat, lon, z/R
+        return lat, lon, z / R
 
     @staticmethod
     def r_neu(phi: float, lamda: float, height: float):
         phi = np.deg2rad(phi)
         lamda = np.deg2rad(lamda)
-        matrix = np.array([[-np.sin(phi)*np.cos(lamda), -np.sin(lamda), np.cos(phi)*np.cos(lamda)],
-                           [-np.sin(phi)*np.sin(lamda), np.cos(lamda), np.cos(phi)*np.sin(lamda)],
-                           [np.cos(phi), 0, np.sin(phi)]])
+        matrix = np.array(
+            [
+                [
+                    -np.sin(phi) * np.cos(lamda),
+                    -np.sin(lamda),
+                    np.cos(phi) * np.cos(lamda),
+                ],
+                [
+                    -np.sin(phi) * np.sin(lamda),
+                    np.cos(lamda),
+                    np.cos(phi) * np.sin(lamda),
+                ],
+                [np.cos(phi), 0, np.sin(phi)],
+            ]
+        )
         return matrix
 
     @staticmethod
@@ -123,7 +142,7 @@ class Satellites:
     def satellites_coordinates(self):
         A = np.zeros((0, 4))
         number_of_satellites = self.naval.shape[0]
-        self.satellites_phi_lambda = ([[[],[]] for i in range(number_of_satellites)])
+        self.satellites_phi_lambda = [[[], []] for i in range(number_of_satellites)]
         for id in range(number_of_satellites):
             nav = self.naval[id, :]
             self.satellites_ids.append(nav[0])
@@ -131,7 +150,6 @@ class Satellites:
             self.elevation_of_satellites.append([])
             index_era = 0
             while era_date <= self.end_date:
-                # print(era_date)
                 data = self.datetime_to_list(era_date)
                 week, tow = date2tow(data)
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
@@ -146,40 +164,44 @@ class Satellites:
 
                 Az = np.arctan2(e, n)  # arctan(e/n)
                 Az = np.rad2deg(Az)
-                el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
+                el = np.arcsin(u / (np.sqrt(n**2 + e**2 + u**2)))  # elewacja
                 el = np.rad2deg(el)
-                # print(el)
                 self.elevation_of_satellites[-1].append(el)
 
                 """ visible satellites """
-                # print(index_era)
 
-                if el > self.mask and self.interval == timedelta(minutes=15) and index_era < 96:
+                if (
+                    el > self.mask
+                    and self.interval == timedelta(minutes=15)
+                    and index_era < 96
+                ):
                     self.visible_satellites[index_era] += 1
 
                 r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
                 if el > self.mask:
-                    A1 = np.array([(-(Xs[0]-Xr[0]) / r),
-                                   (-(Xs[1] - Xr[1]) / r),
-                                   (-(Xs[2] - Xr[2]) / r),
-                                   1])
+                    A1 = np.array(
+                        [
+                            (-(Xs[0] - Xr[0]) / r),
+                            (-(Xs[1] - Xr[1]) / r),
+                            (-(Xs[2] - Xr[2]) / r),
+                            1,
+                        ]
+                    )
                     A = np.vstack([A, A1])
                 era_date += self.interval
                 index_era += 1
-            # break
+
         Q = np.linalg.inv(np.dot(A.transpose(), A))
-        # print('q', Q)
+
         qx, qy, qz, qt = Q.diagonal()
         Qxyz = Q[:3, :3]
-        # print('Qxyz', Qxyz)
 
         PDOP = np.sqrt(qx + qy + qz)
         TDOP = np.sqrt(qt)
         GDOP = np.sqrt(PDOP**2 + TDOP**2)
-        print(GDOP, PDOP, TDOP)
 
         Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
-        # print('Qneu', Qneu)
+
         qn, qe, qu = Qneu.diagonal()
         HDOP = np.sqrt(qn + qe)
         VDOP = np.sqrt(qu)
@@ -198,7 +220,6 @@ class Satellites:
             for id in range(number_of_satellites):
                 nav = self.naval[id, :]
                 self.satellites_ids.append(nav[0])
-                # print(era_date)
 
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
                 Xr = self.phi_lamda_to_xyz(*self.obs_pos)
@@ -209,42 +230,43 @@ class Satellites:
 
                 Az = np.arctan2(e, n)  # arctan(e/n)
                 Az = np.degrees(Az)
-                el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
+                el = np.arcsin(u / (np.sqrt(n**2 + e**2 + u**2)))  # elewacja
                 el = np.degrees(el)
 
                 r = np.sqrt(Xsr[0] ** 2 + Xsr[1] ** 2 + Xsr[2] ** 2)
                 if el > self.mask:
-                    A1 = np.array([(-(Xs[0]-Xr[0]) / r),
-                                   (-(Xs[1] - Xr[1]) / r),
-                                   (-(Xs[2] - Xr[2]) / r),
-                                   1])
+                    A1 = np.array(
+                        [
+                            (-(Xs[0] - Xr[0]) / r),
+                            (-(Xs[1] - Xr[1]) / r),
+                            (-(Xs[2] - Xr[2]) / r),
+                            1,
+                        ]
+                    )
                     A = np.vstack([A, A1])
-                    self.skyplot_positions.append([f'{id+1}', Az, el])
-            # print(self.visible_satellites)
+                    self.skyplot_positions.append([f"{id+1}", Az, el])
+
             Q = np.linalg.inv(np.dot(A.transpose(), A))
             qx, qy, qz, qt = Q.diagonal()
             Qxyz = Q[:3, :3]
-            # print('Qxyz', Qxyz)
 
             PDOP = np.sqrt(qx + qy + qz)
             TDOP = np.sqrt(qt)
-            GDOP = np.sqrt(PDOP ** 2 + TDOP ** 2)
-
+            GDOP = np.sqrt(PDOP**2 + TDOP**2)
 
             Qneu = self.r_neu.transpose() @ Qxyz @ self.r_neu
-            # print('Qneu', Qneu)
+
             qn, qe, qu = Qneu.diagonal()
             HDOP = np.sqrt(qn + qe)
             VDOP = np.sqrt(qu)
-            PDOPneu = np.sqrt(HDOP ** 2 + VDOP ** 2)
+            PDOPneu = np.sqrt(HDOP**2 + VDOP**2)
 
-            # print(GDOP, PDOP, TDOP, HDOP, VDOP)
             self.DOP[0].append(GDOP)
             self.DOP[1].append(PDOP)
             self.DOP[2].append(TDOP)
             self.DOP[3].append(HDOP)
             self.DOP[4].append(VDOP)
-            # print(self.DOP)
+
             era_date += self.interval
 
     def satellites_coordinates_skyplot(self):
@@ -258,7 +280,6 @@ class Satellites:
             for id in range(number_of_satellites):
                 nav = self.naval[id, :]
                 self.satellites_ids.append(nav[0])
-                # print(era_date)
 
                 Xs = self.satellite_xyz(week, tow, nav)  # satellite xyz
                 Xr = self.phi_lamda_to_xyz(*self.obs_pos)
@@ -269,13 +290,12 @@ class Satellites:
 
                 Az = np.arctan2(e, n)  # arctan(e/n)
                 Az = np.degrees(Az)
-                el = np.arcsin(u / (np.sqrt(n ** 2 + e ** 2 + u ** 2)))  # elewacja
+                el = np.arcsin(u / (np.sqrt(n**2 + e**2 + u**2)))  # elewacja
                 el = np.degrees(el)
 
                 if el > self.mask:
-                    self.skyplot_positions.append([f'{id+1}', el, Az])
+                    self.skyplot_positions.append([f"{id+1}", el, Az])
             break
-
 
     def set_interval(self, interval: timedelta):
         self.interval = interval
@@ -294,25 +314,11 @@ class Satellites:
 
 
 if __name__ == "__main__":
-    sat = Satellites(file_name='almanac.yuma.week0150.589824.txt', start_date=datetime(year=2022, month=2, day=24), mask=10, observer_pos=[51,21,100])
+    sat = Satellites(
+        file_name="almanac.yuma.week0150.589824.txt",
+        start_date=datetime(year=2022, month=2, day=24),
+        mask=10,
+        observer_pos=[51, 21, 100],
+    )
     sat.interval = timedelta(minutes=15)
-    # sat.set_start_end_dates(datetime(year=2022, month=2, day=25), datetime(year=2022, month=2, day=25))
     sat.satellites_coordinates()
-    print(sat.elevation_of_satellites)
-
-    # sat.visible_satellites
-    # import plotly.graph_objects as go
-    #
-    # fig = go.Figure()
-    # for i in range(len(sat.satellites_phi_lambda)):
-    #     lat_iterated = sat.satellites_phi_lambda[i][0]
-    #     lon_iterated = sat.satellites_phi_lambda[i][1]
-    #     fig.add_trace(
-    #         go.Scattergeo(
-    #             lon=lon_iterated,
-    #             lat=lat_iterated,
-    #             mode='lines',
-    #             name=f"{i + 1}"
-    #         )
-    #     )
-    # fig.show()
