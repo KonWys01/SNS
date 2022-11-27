@@ -16,8 +16,7 @@ App that calculates positions of satellites based on given date and coordinates 
 
 ## Demo
 
-![](https://github.com/KonWys01/SNS/Demo.gif)
-
+![](https://github.com/KonWys01/SNS/blob/main/Demo.gif)
 
 ## Libraries
 
