@@ -76,9 +76,10 @@ def dane() -> render_template:
     data = pd.DataFrame(satellites_zipped, index=dates, columns=satellites_names)
     fig1 = px.line(data, x=data.index, y=satellites_names)
     fig1.update_layout(
-        title="Wykres elewacji satelitów",
-        xaxis_title="Era",
-        yaxis={"title": "Wartość elewacji", "range": (mask, 90)},
+        title="Satellite Elevation",
+        xaxis_title="Date and Time",
+        yaxis={"title": "Elevation", "range": (mask, 90)},
+        height=700
     )
     graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -105,9 +106,10 @@ def widoczne() -> render_template:
     )
     fig2 = px.bar(data_visible, x=data_visible.index, y=["visible satellites"])
     fig2.update_layout(
-        title="Wykres widocznych satelitów",
-        xaxis_title="Era",
-        yaxis_title="Liczba widocznych satelit",
+        title="Visible Satellites",
+        xaxis_title="Date and Time",
+        yaxis_title="Number of visible satellites",
+        height=700
     )
     graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template("widoczne.html", graph2JSON=graph2JSON)
@@ -130,7 +132,7 @@ def dop() -> render_template:
     DOP_names = ["GDOP", "PDOP", "TDOP", "HDOP", "VDOP"]
     data = pd.DataFrame(DOP_zipped, columns=DOP_names)
     fig3 = px.line(data, x=data.index, y=DOP_names)
-    fig3.update_layout(title="Wykres DOP", xaxis_title="Era", yaxis_title="DOP")
+    fig3.update_layout(title="DOP chart", xaxis_title="Date and Time", yaxis_title="DOP", height=700)
     graph3JSON = json.dumps(fig3, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template("dop.html", graph3JSON=graph3JSON)
 
@@ -150,7 +152,7 @@ def skyplot() -> render_template:
 
     sat_positions = sat_skyplot.show_skyplot_positions()
     fig4 = plot_skyplot(sat_positions)
-    fig4.update_layout(title="Skyplot - położenie satelitów")
+    fig4.update_layout(title="Skyplot - satellites positions", height=700)
     graph4JSON = json.dumps(fig4, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template("skyplot.html", graph4JSON=graph4JSON)
 
@@ -177,7 +179,7 @@ def groundtrack() -> render_template:
                 lon=lon_iterated, lat=lat_iterated, mode="lines", name=f"{i + 1}"
             )
         )
-    fig5.update_layout(title="Groundtrack satelitów", height=1000)
+    fig5.update_layout(title="Satellites Groundtrack", height=700)
     graph5JSON = json.dumps(fig5, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template("groundtrack.html", graph5JSON=graph5JSON)
 
@@ -211,7 +213,7 @@ def global_satellites() -> render_template:
             lataxis=dict(showgrid=True, gridcolor="rgb(102, 102, 102)", gridwidth=0.5),
         )
     )
-    fig6.update_layout(title="Globalna widoczność satelitów", height=1000)
+    fig6.update_layout(title="Global satellites visibility", height=700)
     graph6JSON = json.dumps(fig6, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template("global_satellites.html", graph6JSON=graph6JSON)
 
