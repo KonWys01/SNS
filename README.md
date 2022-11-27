@@ -30,7 +30,7 @@ Project done in Python 3.9
 
 ## Installation
 
-To deploy this project run create virtualenv and install dependencies
+To setup the project create virtualenv and install dependencies
 
 ```bash
   python3.9 -m venv env
